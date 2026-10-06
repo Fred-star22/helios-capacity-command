@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Helios 24-hour emergency transfer and six-hour capacity forecast simulation">
+  <title>Helios Capacity Command</title>
+  <style>
+    :root{
+      --green:#35c600;--green-dark:#197600;--navy:#09243f;--ink:#172231;--muted:#657284;
+      --paper:#f4f7f5;--card:#fff;--line:#dce4df;--red:#d33c32;--amber:#e69b17;--blue:#1672d4;
+      --shadow:0 10px 28px rgba(9,36,63,.10);--radius:18px
+    }
+    *{box-sizing:border-box} body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,select{font:inherit} button{cursor:pointer}.hidden{display:none!important}
+    header{background:var(--navy);color:#fff;padding:16px 24px;position:sticky;top:0;z-index:10;box-shadow:0 4px 14px rgba(0,0,0,.16)}
+    .header-row{max-width:1450px;margin:auto;display:flex;align-items:center;gap:18px;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:12px}.mark{width:42px;height:42px;border-radius:13px;background:var(--green);display:grid;place-items:center;font-weight:900;color:#fff}
+    h1{font-size:20px;margin:0}.subtitle{font-size:12px;color:#c8d5df;margin-top:2px}
+    .clockbox{display:flex;align-items:center;gap:14px}.clock{font-variant-numeric:tabular-nums;font-size:25px;font-weight:800;min-width:170px;text-align:right}
+    .day{font-size:11px;color:#bed0dc;text-transform:uppercase;letter-spacing:.1em}
+    .controls{display:flex;gap:7px;flex-wrap:wrap}.controls button,.controls select{border:1px solid #476078;background:#163a5a;color:#fff;border-radius:9px;padding:8px 10px}.controls button.active{background:var(--green);border-color:var(--green);color:#082315}
+    main{max-width:1450px;margin:0 auto;padding:22px}.notice{background:#eaf8e5;border:1px solid #b8e7a8;padding:11px 15px;border-radius:12px;font-size:13px;margin-bottom:16px}
+    .topline{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px}.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+    .panel h2,.panel h3{margin:0 0 12px}.panel h2{font-size:18px}.panel h3{font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    .timeline{height:16px;background:#dfe7e2;border-radius:99px;overflow:hidden;position:relative}.timeline-fill{height:100%;background:linear-gradient(90deg,var(--green-dark),var(--green));width:0%}.timeline-marks{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px}
+    .training{display:flex;gap:14px;align-items:center}.training button,.primary{border:0;background:var(--green);color:#092c00;font-weight:800;border-radius:10px;padding:11px 15px}.training button:hover,.primary:hover{filter:brightness(.96)}
+    .model-stat{flex:1}.meter{height:9px;border-radius:20px;background:#e3e8e5;overflow:hidden}.meter>span{display:block;height:100%;width:12%;background:var(--green);transition:.4s}.small{font-size:12px;color:var(--muted)}
+    .scoreboard{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}.score{padding:15px;border-radius:14px;border:1px solid var(--line);background:#fff}.score.ai{border-top:4px solid var(--green)}.score.human{border-top:4px solid var(--blue)}.score.oracle{border-top:4px solid var(--amber)}
+    .score-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}.score-num{font-size:28px;font-weight:850;margin:2px 0}.score-detail{font-size:12px;color:var(--muted)}
+    .layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(310px,.7fr);gap:16px}.hospital-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+    .hospital{background:#fff;border:2px solid var(--line);border-radius:16px;overflow:hidden;transition:.2s;position:relative}.hospital:hover{transform:translateY(-2px);box-shadow:var(--shadow)}.hospital.recommended{border-color:var(--green);box-shadow:0 0 0 3px rgba(53,198,0,.14)}.hospital.selected{border-color:var(--blue)}.hospital.impossible{opacity:.65}
+    .hospital-head{padding:14px;background:#f7faf8;border-bottom:1px solid var(--line)}.hospital-name{font-weight:850;font-size:15px}.hospital-level{font-size:11px;color:var(--muted);margin-top:3px}.hospital-body{padding:13px}
+    .live-row{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #edf1ee;padding:7px 0;font-size:12px}.live-row:last-child{border-bottom:0}.live-value{font-weight:750}.risk{padding:3px 7px;border-radius:99px;font-size:10px;font-weight:850}.risk.low{background:#dff5d7;color:#176400}.risk.medium{background:#fff1cc;color:#7b5200}.risk.high{background:#ffe0dc;color:#9c1c12}
+    .hospital button{width:100%;border:0;border-top:1px solid var(--line);background:#fff;color:var(--blue);font-weight:850;padding:12px}.hospital button:hover{background:#eef6ff}.hospital button:disabled{cursor:not-allowed;color:#9aa4ae;background:#f4f5f5}
+    .patient-card{border-left:6px solid var(--red);background:#fff;border-radius:14px;padding:16px;margin-bottom:14px}.patient-top{display:flex;justify-content:space-between;gap:10px}.patient-title{font-size:20px;font-weight:900}.badge{display:inline-flex;align-items:center;padding:4px 9px;border-radius:99px;font-size:11px;font-weight:850}.critical{background:#ffe2df;color:#a51e14}.urgent{background:#fff0cc;color:#7e5300}.standard{background:#e3f0ff;color:#115694}
+    .patient-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:13px}.datum{background:#f4f7f5;border-radius:9px;padding:8px}.datum span{display:block;font-size:10px;color:var(--muted);text-transform:uppercase}.datum b{font-size:13px}
+    .recommendation{background:#effae9;border:1px solid #bde8ad;border-radius:14px;padding:14px;margin-bottom:14px}.recommendation strong{color:var(--green-dark)}.why{font-size:12px;line-height:1.5;margin-top:6px}.warning{background:#fff5db;border-color:#efce7f}
+    .waiting{text-align:center;padding:42px 18px;color:var(--muted)}.waiting-icon{font-size:40px;margin-bottom:8px}
+    .events{margin-top:16px;max-height:245px;overflow:auto}.event{display:grid;grid-template-columns:55px 1fr;gap:8px;padding:8px 0;border-bottom:1px solid #edf1ee;font-size:12px}.event-time{font-weight:800;color:var(--navy)}
+    .live-note{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:11px;margin-bottom:10px}.pulse{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 0 0 rgba(53,198,0,.5);animation:pulse 1.8s infinite}@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(53,198,0,0)}}
+    .forecast-table{width:100%;border-collapse:collapse;font-size:11px}.forecast-table th,.forecast-table td{text-align:left;border-bottom:1px solid #e7ece9;padding:7px 5px}.forecast-table th{color:var(--muted)}
+    .outcome{border-radius:13px;padding:12px;margin-top:10px;background:#eef5fb;border:1px solid #c7dceb;font-size:12px;line-height:1.45}.outcome.bad{background:#fff0ee;border-color:#efc0bb}.outcome.good{background:#edf9e8;border-color:#bce1ae}
+    .modal{position:fixed;inset:0;background:rgba(5,22,37,.74);z-index:30;display:grid;place-items:center;padding:18px}.modal-card{max-width:800px;width:100%;max-height:90vh;overflow:auto;background:#fff;border-radius:22px;padding:26px;box-shadow:0 25px 80px rgba(0,0,0,.35)}.modal h2{font-size:28px}.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.mode{border:2px solid var(--line);border-radius:15px;padding:16px;cursor:pointer}.mode:hover,.mode.chosen{border-color:var(--green);background:#f3fbed}.mode h3{margin:0 0 6px;color:var(--ink);text-transform:none;letter-spacing:0;font-size:17px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.secondary{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;font-weight:700}
+    .end-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.end-card{padding:15px;background:#f5f8f6;border-radius:14px}.end-card b{font-size:26px}.lesson{background:#edf6ff;border-left:5px solid var(--blue);padding:14px;margin-top:16px;border-radius:9px}
+    footer{max-width:1450px;margin:18px auto;padding:0 22px 28px;color:var(--muted);font-size:11px}
+    @media(max-width:1050px){.layout,.topline{grid-template-columns:1fr}.hospital-grid{grid-template-columns:1fr}.hospital{display:grid;grid-template-columns:1fr 1.4fr .5fr}.hospital-head{border-bottom:0}.hospital button{border-top:0;border-left:1px solid var(--line)}.scoreboard{grid-template-columns:1fr 1fr 1fr}}
+    @media(max-width:650px){header{position:static}.header-row{align-items:flex-start;flex-direction:column}.clock{text-align:left}.scoreboard,.end-grid,.mode-grid{grid-template-columns:1fr}.hospital{display:block}.patient-grid{grid-template-columns:1fr}.controls{width:100%}.topline{display:block}.topline>.panel{margin-bottom:12px}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-row">
+    <div class="brand"><div class="mark">H+</div><div><h1>Helios Capacity Command</h1><div class="subtitle">Northern regional transfer coordination simulation</div></div></div>
+    <div class="clockbox"><div><div class="day" id="dayLabel">Day 1</div><div class="clock" id="clock">12:00</div></div>
+      <div class="controls"><button id="pauseBtn">▶ Start</button><button data-speed="1">1×</button><button data-speed="2">2×</button><button data-speed="5" class="active">5×</button><button id="nextBtn">Next event</button></div>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="notice"><b>Educational simulation only.</b> Hospital capabilities are based on public descriptions; all capacity, staffing, demand, travel and patient data are synthetic. This is not a clinical system or a trained medical AI.</div>
+  <section class="topline">
+    <div class="panel"><h3>24-hour operational window</h3><div class="timeline"><div class="timeline-fill" id="timelineFill"></div></div><div class="timeline-marks"><span>12:00</span><span>18:00</span><span>00:00</span><span>06:00</span><span>12:00</span></div><div class="small" id="nextEventLabel" style="margin-top:8px">Select a mode to begin.</div></div>
+    <div class="panel"><h3>Adaptive model</h3><div class="training"><button id="trainBtn">Stress-test AI</button><div class="model-stat"><div><b id="trainingCount">0</b> synthetic scenarios tested</div><div class="meter"><span id="trainingMeter"></span></div><div class="small" id="learningText">Uncalibrated baseline</div></div></div></div>
+  </section>
+  <section class="scoreboard">
+    <div class="score human"><div class="score-label">Human coordinator</div><div class="score-num" id="humanScore">0</div><div class="score-detail" id="humanDetail">0 placed · 0 failed</div></div>
+    <div class="score ai"><div class="score-label">AI shadow scenario</div><div class="score-num" id="aiScore">0</div><div class="score-detail" id="aiDetail">0 placed · 0 failed</div></div>
+    <div class="score oracle"><div class="score-label">Hindsight benchmark</div><div class="score-num" id="oracleScore">0</div><div class="score-detail" id="oracleDetail">Hidden until outcomes resolve</div></div>
+  </section>
+  <section class="layout">
+    <div>
+      <div class="panel">
+        <div class="live-note"><span class="pulse"></span>Live simulated operational feed · refreshes every 15 simulated minutes</div>
+        <h2>Hospital network</h2>
+        <div class="hospital-grid" id="hospitalGrid"></div>
+      </div>
+      <div class="panel" style="margin-top:16px"><h2>Six-hour forecast ledger</h2><div class="small" style="margin-bottom:8px">Each forecast is locked at the decision time and evaluated exactly six simulated hours later.</div><div style="overflow:auto"><table class="forecast-table"><thead><tr><th>Made</th><th>Hospital / specialty</th><th>Predicted</th><th>Actual after 6h</th><th>Error</th><th>Status</th></tr></thead><tbody id="forecastLedger"><tr><td colspan="6">No forecasts recorded yet.</td></tr></tbody></table></div></div>
+    </div>
+    <aside>
+      <div class="panel" id="decisionPanel"><div class="waiting"><div class="waiting-icon">⏱</div><b>Coordination centre ready</b><p>The clock pauses when a transfer request arrives.</p></div></div>
+      <div class="panel events"><h3>Operations log</h3><div id="eventLog"></div></div>
+    </aside>
+  </section>
+</main>
+<footer>Prototype purpose: demonstrate how a six-hour usable-capacity forecast could support—but not replace—human transfer decisions. Receiving-team confirmation remains mandatory.</footer>
+
+<div class="modal" id="startModal">
+  <div class="modal-card"><h2>Choose the simulation mode</h2><p>Both modes cover the same 24-hour operating window. The clock automatically pauses for decisions and outcome reviews.</p>
+    <div class="mode-grid"><div class="mode chosen" data-mode="demo"><h3>Presentation mode</h3><p>14 transfer requests, approximately 5–7 minutes, including a surge and two data-quality traps.</p></div><div class="mode" data-mode="full"><h3>Full game</h3><p>28 transfer requests, broader night demand and additional difficult scenarios.</p></div></div>
+    <div class="modal-actions"><button class="secondary" id="aboutBtn">How scoring works</button><button class="primary" id="beginBtn">Begin 24-hour simulation</button></div>
+    <div id="aboutText" class="lesson hidden"><b>Scoring:</b> up to 100 points per request for clinical suitability, confirmed specialist, usable bed on arrival, timely admission, reasonable travel and preservation of scarce maximum-care capacity. Unsafe destinations, rejected arrivals and secondary transfers create penalties. The hindsight benchmark knows the realized future; the AI does not.</div>
+  </div>
+</div>
+<div class="modal hidden" id="endModal"><div class="modal-card"><h2>24-hour review</h2><p id="endSummary"></p><div class="end-grid" id="endGrid"></div><div class="lesson" id="endLesson"></div><div class="modal-actions"><button class="secondary" onclick="location.reload()">Run a new day</button><button class="primary" id="closeEnd">Review dashboard</button></div></div></div>
+
+<script>
+(() => {
+  'use strict';
+  const MINUTE=60, HORIZON=360;
+  const SPECIALTIES={
+    'Internal medicine':{icon:'🫁',los:[5,12]},'Cardiology':{icon:'❤️',los:[8,18]},'Neurology / stroke':{icon:'🧠',los:[7,16]},
+    'Trauma surgery':{icon:'🦴',los:[5,14]},'Paediatrics':{icon:'🧒',los:[4,10]},'Obstetrics':{icon:'🤰',los:[5,14]}
+  };
+  const HOSPITALS=[
+    {id:'MAR',name:'Helios Mariahilf Klinik Hamburg',short:'Mariahilf Hamburg',level:'Basic & regular care',accent:'#1672d4',
+      services:{'Internal medicine':8,'Cardiology':4,'Trauma surgery':4,'Paediatrics':7,'Obstetrics':8},baseOcc:.70},
+    {id:'UEL',name:'Helios Klinikum Uelzen',short:'Klinikum Uelzen',level:'Regional specialist care',accent:'#35a10e',
+      services:{'Internal medicine':10,'Cardiology':7,'Neurology / stroke':6,'Trauma surgery':7,'Paediatrics':5,'Obstetrics':5},baseOcc:.74},
+    {id:'SCH',name:'Helios Kliniken Schwerin',short:'Kliniken Schwerin',level:'Maximum care',accent:'#8b4cc2',
+      services:{'Internal medicine':12,'Cardiology':9,'Neurology / stroke':8,'Trauma surgery':9,'Paediatrics':7,'Obstetrics':6},baseOcc:.78}
+  ];
+  const ORIGINS=[
+    {name:'Hamburg South referring ED',travel:{MAR:12,UEL:63,SCH:92}},
+    {name:'Lüneburg corridor',travel:{MAR:46,UEL:34,SCH:78}},
+    {name:'Western Mecklenburg',travel:{MAR:78,UEL:69,SCH:31}},
+    {name:'A24 regional ambulance hub',travel:{MAR:54,UEL:72,SCH:49}},
+    {name:'Rural Elbe region',travel:{MAR:56,UEL:48,SCH:61}}
+  ];
+  const CONDITIONS=[
+    {name:'Chest pain with ECG changes',specialty:'Cardiology',urgency:'critical',minLevel:1},
+    {name:'Suspected ischemic stroke',specialty:'Neurology / stroke',urgency:'critical',minLevel:2},
+    {name:'Multiple traumatic injuries',specialty:'Trauma surgery',urgency:'critical',minLevel:2},
+    {name:'Acute abdominal pain',specialty:'Internal medicine',urgency:'urgent',minLevel:1},
+    {name:'Severe respiratory infection',specialty:'Internal medicine',urgency:'urgent',minLevel:1},
+    {name:'Child with breathing difficulty',specialty:'Paediatrics',urgency:'urgent',minLevel:1},
+    {name:'Complicated labour transfer',specialty:'Obstetrics',urgency:'critical',minLevel:1},
+    {name:'Hip fracture after fall',specialty:'Trauma surgery',urgency:'standard',minLevel:1},
+    {name:'Cardiac rhythm disturbance',specialty:'Cardiology',urgency:'urgent',minLevel:1}
+  ];
+  let seed=20261006;
+  function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296}
+  function pick(a){return a[Math.floor(rand()*a.length)]}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+  function fmt(m){m=Math.round(m);const total=(12*60+m)%(24*60);return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`}
+  function dayOf(m){return m<720?'Day 1':'Day 2'}
+  function careLevel(h){return h.id==='SCH'?3:h.id==='UEL'?2:1}
+  function demandFactor(min){const h=((12+min/60)%24);if(h>=17&&h<22)return 1.35;if(h>=9&&h<12)return 1.25;if(h>=12&&h<17)return 1.05;if(h>=22||h<2)return .88;if(h>=2&&h<6)return .46;return .78}
+  function night(min){const h=(12+min/60)%24;return h>=22||h<6}
+  const state={mode:'demo',minute:0,speed:5,running:false,timer:null,cases:[],caseIndex:0,current:null,selected:null,logs:[],ledger:[],training:0,
+    weights:{risk:42,travel:.30,reserve:5,level:4},bias:{},worlds:{},pausedReason:'start',resolvedCases:0,latestOutcome:null};
+  function makeWorld(){const admissions={};HOSPITALS.forEach(h=>admissions[h.id]=[]);return {admissions,pending:[],score:0,placed:0,failed:0,decisions:[]}}
+  function resetWorlds(){state.worlds={human:makeWorld(),ai:makeWorld(),oracle:makeWorld()}}
+  function profileNoise(hid,spec,min){let x=0;for(const c of hid+spec)x=(x*31+c.charCodeAt(0))>>>0;const phase=(x%360)/57.3;return Math.sin(min/83+phase)*.7+Math.sin(min/211+phase*.4)*.45}
+  function blocked(h,s,min){const base=(h.id==='SCH'&&s==='Internal medicine'?1:0);const surge=(min>410&&min<540&&s==='Trauma surgery'&&h.id!=='MAR'?1:0);return base+surge}
+  // Realized shocks are visible to the hindsight benchmark but are not knowable in an earlier forecast.
+  function hiddenShock(h,s,min){
+    if(h.id==='MAR'&&s==='Obstetrics'&&min>=335&&min<=430)return 3; // simultaneous emergency deliveries
+    if(h.id==='SCH'&&s==='Trauma surgery'&&min>=500&&min<=600)return 2; // unannounced regional trauma surge
+    return 0
+  }
+  function externalOccupied(h,s,min){const total=h.services[s]||0;if(!total)return total;const load=h.baseOcc+(demandFactor(min)-1)*.17+profileNoise(h.id,s,min)*.035;return clamp(Math.round(total*load),0,total)}
+  function specialist(h,s,min,world){if(!h.services[s])return {ok:false,label:'Not provided'};const hour=(12+min/60)%24;
+    if(s==='Neurology / stroke'&&h.id==='UEL'&&min>560&&min<700)return {ok:false,label:'Occupied in procedure'};
+    if(s==='Obstetrics'&&h.id==='MAR'&&min>850&&min<960)return {ok:false,label:'Emergency theatre'};
+    if(s==='Paediatrics'&&h.id==='UEL'&&hour>=2&&hour<6)return {ok:false,label:'On-call · 35 min'};
+    const busy=world?world.admissions[h.id].filter(a=>a.specialty===s&&a.start<=min&&a.release>min&&a.urgency==='critical').length:0;
+    if(busy>=2)return {ok:false,label:'Team occupied'};return {ok:true,label:'Available'}
+  }
+  function cleanup(world,min){for(const h of HOSPITALS)world.admissions[h.id]=world.admissions[h.id].filter(a=>a.release>min);world.pending=world.pending.filter(p=>p.arrival>min)}
+  function liveCapacity(world,h,s,min){if(!h.services[s])return 0;cleanup(world,min);const own=world.admissions[h.id].filter(a=>a.specialty===s&&a.start<=min&&a.release>min).length;const reserved=world.pending.filter(p=>p.hospital===h.id&&p.patient.specialty===s&&p.arrival<=min+45).length;return Math.max(0,h.services[s]-externalOccupied(h,s,min)-blocked(h,s,min)-hiddenShock(h,s,min)-own-reserved)}
+  function forecast(world,h,s,min,record=false){if(!h.services[s])return {beds:0,risk:100,stale:false,range:'0'};const target=min+HORIZON;const currentOwn=world.admissions[h.id].filter(a=>a.specialty===s&&a.start<=min&&a.release>target).length;
+    const pending=world.pending.filter(p=>p.hospital===h.id&&p.patient.specialty===s&&p.arrival<=target&&p.arrival+p.patient.los>target).length;
+    let raw=h.services[s]-externalOccupied(h,s,target)-blocked(h,s,target)-currentOwn-pending;
+    const stale=(min>255&&min<365&&h.id==='MAR')||(min>760&&min<850&&h.id==='UEL');
+    const nightDischarge=night(target)?-.7:0;const bias=state.bias[`${h.id}|${s}`]||0;let beds=Math.round(raw+nightDischarge+bias+(stale?1.5:0));
+    const risk=clamp(Math.round(68-beds*18+(stale?24:0)+(pending*7)),4,98);return {beds,risk,stale,range:`${beds-1} to ${beds+1}`,target}
+  }
+  function actualFuture(world,h,s,target){return liveCapacity(world,h,s,target)}
+  function createCases(count){const cases=[];let times=[];for(let i=0;i<count;i++){let t;do{t=Math.floor(rand()*1320)+25}while(rand()>Math.min(1,demandFactor(t)/1.35));times.push(t)}
+    if(count<=14)times=[38,112,178,252,328,405,472,535,615,704,806,925,1090,1260];times.sort((a,b)=>a-b);
+    times.forEach((time,i)=>{let cond=pick(CONDITIONS);if(i===6)cond=CONDITIONS[2];if(i===9)cond=CONDITIONS[1];const origin=pick(ORIGINS);const losBase=SPECIALTIES[cond.specialty].los;const los=(losBase[0]+Math.floor(rand()*(losBase[1]-losBase[0]+1)))*60;
+      cases.push({id:`P${String(i+1).padStart(2,'0')}`,time,condition:cond.name,specialty:cond.specialty,urgency:cond.urgency,minLevel:cond.minLevel,origin,los,assigned:{},outcomes:{},forecasts:{}})});return cases}
+  function init(){seed=state.mode==='demo'?20261006:20261007;state.minute=0;state.caseIndex=0;state.current=null;state.selected=null;state.logs=[];state.ledger=[];state.resolvedCases=0;state.latestOutcome=null;state.bias={};state.cases=createCases(state.mode==='demo'?14:28);resetWorlds();renderAll();log('12:00','Coordination centre opened. Live feeds synchronized.');pause('ready')}
+  function candidate(patient,world,h,useFuture=false){const travel=patient.origin.travel[h.id];const arrival=state.minute+travel;const capable=!!h.services[patient.specialty]&&careLevel(h)>=patient.minLevel;const doc=specialist(h,patient.specialty,arrival,world);const fc=forecast(world,h,patient.specialty,state.minute);const cap=useFuture?actualFuture(world,h,patient.specialty,arrival):liveCapacity(world,h,patient.specialty,state.minute);
+    const feasible=capable&&doc.ok&&(useFuture?cap>0:true);let score=0;if(capable)score+=42;if(doc.ok)score+=22;score+=(100-fc.risk)*state.weights.risk/100;score-=travel*state.weights.travel;score+=Math.max(-2,fc.beds)*state.weights.reserve;if(careLevel(h)>patient.minLevel)score-=state.weights.level*(careLevel(h)-patient.minLevel);if(fc.stale)score-=18;if(!feasible)score-=120;return {h,travel,arrival,capable,doc,fc,cap,feasible,score}}
+  function chooseAI(patient){return HOSPITALS.map(h=>candidate(patient,state.worlds.ai,h)).sort((a,b)=>b.score-a.score)[0]}
+  function chooseOracle(patient){return HOSPITALS.map(h=>candidate(patient,state.worlds.oracle,h,true)).sort((a,b)=>b.score-a.score)[0]}
+  function showCase(patient){state.current=patient;state.running=false;state.pausedReason='decision';const ai=chooseAI(patient);patient.aiCandidate=ai;renderAll();renderDecision(patient,ai);log(fmt(state.minute),`${patient.id}: ${patient.condition} requires ${patient.specialty}.`)}
+  function dispatch(hid){if(!state.current)return;const p=state.current;const human=HOSPITALS.find(h=>h.id===hid);const ai=p.aiCandidate.h;const oracle=chooseOracle(p).h;p.assigned={human:human.id,ai:ai.id,oracle:oracle.id};
+    for(const who of ['human','ai','oracle']){const h=HOSPITALS.find(x=>x.id===p.assigned[who]);const travel=p.origin.travel[h.id];const fc=forecast(state.worlds[who],h,p.specialty,state.minute,true);p.forecasts[who]={hospital:h.id,predicted:fc.beds,risk:fc.risk,made:state.minute,target:state.minute+HORIZON,stale:fc.stale};state.worlds[who].pending.push({patient:p,hospital:h.id,arrival:state.minute+travel,forecast:fc});}
+    for(const h of HOSPITALS){if(h.services[p.specialty]){const fc=forecast(state.worlds.human,h,p.specialty,state.minute);state.ledger.push({caseId:p.id,made:state.minute,target:state.minute+HORIZON,hospital:h.id,specialty:p.specialty,predicted:fc.beds,actual:null,status:'pending'})}}
+    log(fmt(state.minute),`Human → ${human.short}; AI shadow → ${ai.short}. Hindsight choice remains hidden.`);state.caseIndex++;state.current=null;state.selected=null;renderAll();resume();}
+  function resolveArrivals(prev,now){
+    for(const p of state.cases){
+      for(const who of ['ai','oracle','human']){
+        if(p.outcomes[who]||!p.assigned[who])continue;
+        const h=HOSPITALS.find(x=>x.id===p.assigned[who]);const arrival=p.time+p.origin.travel[h.id];
+        if(arrival>prev&&arrival<=now){
+          const world=state.worlds[who];cleanup(world,arrival);const capable=!!h.services[p.specialty]&&careLevel(h)>=p.minLevel;const doc=specialist(h,p.specialty,arrival,world);const beds=liveCapacity(world,h,p.specialty,arrival);const ok=capable&&doc.ok&&beds>0;let points=0;
+          if(capable)points+=25;if(doc.ok)points+=20;if(beds>0)points+=20;if(ok)points+=15;points+=Math.max(0,10-Math.floor(p.origin.travel[h.id]/12));if(ok&&careLevel(h)===p.minLevel)points+=10;if(!capable)points-=50;if(beds<=0)points-=30;if(!doc.ok)points-=25;points=clamp(points,-50,100);
+          p.outcomes[who]={ok,points,arrival,beds,doc:doc.label,hospital:h.id};world.score+=points;
+          if(ok){world.placed++;world.admissions[h.id].push({patient:p.id,specialty:p.specialty,start:arrival,release:arrival+p.los,urgency:p.urgency})}else world.failed++;
+          world.pending=world.pending.filter(x=>x.patient.id!==p.id);if(who==='ai')learnFromOutcome(p,h,beds,ok);
+        }
+      }
+      if(!p.announced&&p.outcomes.human&&p.outcomes.ai&&p.outcomes.oracle){
+        p.announced=true;state.resolvedCases++;state.latestOutcome={patient:p,human:p.outcomes.human,ai:p.outcomes.ai,oracle:p.outcomes.oracle};
+        const o=HOSPITALS.find(x=>x.id===p.outcomes.oracle.hospital);log(fmt(now),`${p.id}: Human ${p.outcomes.human.ok?'admitted':'failed'}; AI ${p.outcomes.ai.ok?'admitted':'failed'}; hindsight choice ${o.short}.`)
+      }
+    }
+  }
+  function learnFromOutcome(p,h,beds,ok){const f=p.forecasts.ai;if(!f)return;const key=`${h.id}|${p.specialty}`;const error=beds-f.predicted;state.bias[key]=clamp((state.bias[key]||0)*.75+error*.25,-2.5,2.5);state.weights.risk=clamp(state.weights.risk+(ok?.15:.7),36,58);state.training+=1;}
+  function resolveForecasts(prev,now){for(const row of state.ledger){if(row.status!=='pending'||row.target>now)continue;const h=HOSPITALS.find(x=>x.id===row.hospital);row.actual=actualFuture(state.worlds.human,h,row.specialty,row.target);row.error=row.actual-row.predicted;row.status='resolved';}}
+  function tick(force=1){if(state.current)return;const step=force*(state.speed===1?1:state.speed===2?2:5);const prev=state.minute;state.minute=Math.min(1440,state.minute+step);resolveArrivals(prev,state.minute);resolveForecasts(prev,state.minute);while(state.caseIndex<state.cases.length&&state.cases[state.caseIndex].time<=state.minute){showCase(state.cases[state.caseIndex]);break}if(state.minute>=1440){pause('end');finish()}renderAll()}
+  function resume(){if(state.minute>=1440)return;state.running=true;state.pausedReason='';document.getElementById('pauseBtn').textContent='⏸ Pause';if(!state.timer)state.timer=setInterval(()=>{if(state.running)tick()},200)}
+  function pause(reason='manual'){state.running=false;state.pausedReason=reason;document.getElementById('pauseBtn').textContent='▶ Start'}
+  function nextEvent(){if(state.current)return;const future=[];if(state.caseIndex<state.cases.length)future.push(state.cases[state.caseIndex].time);for(const p of state.cases)for(const who of ['human','ai','oracle'])if(p.assigned[who]&&!p.outcomes[who])future.push(p.time+p.origin.travel[p.assigned[who]]);for(const r of state.ledger)if(r.status==='pending')future.push(r.target);const target=Math.min(...future.filter(x=>x>state.minute),1440);const prev=state.minute;state.minute=target;resolveArrivals(prev,target);resolveForecasts(prev,target);if(state.caseIndex<state.cases.length&&state.cases[state.caseIndex].time<=target)showCase(state.cases[state.caseIndex]);else renderAll();}
+  function train(){const btn=document.getElementById('trainBtn');btn.disabled=true;btn.textContent='Testing…';let n=0;const batch=()=>{for(let i=0;i<100;i++){const h=pick(HOSPITALS),s=pick(Object.keys(SPECIALTIES));if(!h.services[s])continue;const t=Math.floor(rand()*1440);const predicted=forecast(state.worlds.ai,h,s,t).beds;const actual=Math.max(0,h.services[s]-externalOccupied(h,s,t+360)-blocked(h,s,t+360));const key=`${h.id}|${s}`;state.bias[key]=clamp((state.bias[key]||0)*.97+(actual-predicted)*.03,-2,2);n++;}state.training+=n;n=0;renderTraining();if(state.training<1200)setTimeout(batch,35);else{btn.textContent='Stress test complete';document.getElementById('learningText').textContent='Normal, surge, night, stale-data, herding and specialist-conflict scenarios tested';}};batch()}
+  function finish(){const w=state.worlds;const hp=w.human.score,ap=w.ai.score,op=Math.max(1,w.oracle.score);document.getElementById('endSummary').innerHTML=`The same synthetic day was run in parallel. Human performance reached <b>${Math.round(hp/op*100)}%</b> of hindsight; the AI reached <b>${Math.round(ap/op*100)}%</b>.`;
+    document.getElementById('endGrid').innerHTML=[['Human',hp,w.human],['AI shadow',ap,w.ai],['Hindsight',op,w.oracle]].map(([n,s,x])=>`<div class="end-card"><span class="small">${n}</span><br><b>${s}</b><div>${x.placed} admitted · ${x.failed} failed</div></div>`).join('');
+    const resolved=state.ledger.filter(x=>x.status==='resolved');const mae=resolved.length?resolved.reduce((a,x)=>a+Math.abs(x.error),0)/resolved.length:0;document.getElementById('endLesson').innerHTML=`<b>Forecast review:</b> mean absolute error ${mae.toFixed(1)} beds across ${resolved.length} evaluated forecasts. The adaptive model updated ${Object.keys(state.bias).length} hospital-specialty calibration values. This demonstrates learning logic, not clinical validity.`;document.getElementById('endModal').classList.remove('hidden')}
+  function renderDecision(p,ai){const panel=document.getElementById('decisionPanel');panel.innerHTML=`<div class="patient-card"><div class="patient-top"><div><div class="small">${p.id} · ${fmt(p.time)} · ${p.origin.name}</div><div class="patient-title">${SPECIALTIES[p.specialty].icon} ${p.condition}</div></div><span class="badge ${p.urgency}">${p.urgency.toUpperCase()}</span></div><div class="patient-grid"><div class="datum"><span>Required specialty</span><b>${p.specialty}</b></div><div class="datum"><span>Minimum care level</span><b>${['','Regular','Regional specialist','Maximum'][p.minLevel]}</b></div><div class="datum"><span>Expected bed use</span><b>${Math.round(p.los/60)} hours</b></div><div class="datum"><span>Decision</span><b>Receiving hospital</b></div></div></div>
+      <div class="recommendation ${ai.fc.stale?'warning':''}"><div class="small">AI SHADOW RECOMMENDATION</div><strong>${ai.h.short}</strong><div class="why">${explain(ai,p)} The AI will follow this recommendation in its parallel scenario; you may accept or override it.</div></div><div class="small">Choose a hospital using the buttons on the hospital cards. The receiving team will confirm availability when the patient arrives.</div>`}
+  function explain(c,p){const reasons=[];if(c.capable)reasons.push(`provides ${p.specialty}`);if(c.doc.ok)reasons.push('specialist expected available');reasons.push(`${c.fc.beds} usable beds forecast in 6h`);reasons.push(`${c.travel}-minute transfer`);if(c.fc.stale)reasons.push('but its feed is stale');return reasons.join(', ')+'.'}
+  function renderHospitals(){const grid=document.getElementById('hospitalGrid');const p=state.current;grid.innerHTML=HOSPITALS.map(h=>{const spec=p?p.specialty:'Internal medicine';const world=state.worlds.human;const cap=liveCapacity(world,h,spec,state.minute);const fc=forecast(world,h,spec,state.minute);const doc=specialist(h,spec,state.minute+(p?p.origin.travel[h.id]:0),world);const travel=p?p.origin.travel[h.id]:'—';const recommend=p&&p.aiCandidate.h.id===h.id;const capable=!p||((h.services[spec]||0)&&careLevel(h)>=p.minLevel);return `<article class="hospital ${recommend?'recommended':''} ${!capable?'impossible':''}"><div class="hospital-head"><div class="hospital-name">${h.name}</div><div class="hospital-level">${h.level}${recommend?' · ★ AI choice':''}</div></div><div class="hospital-body"><div class="live-row"><span>Usable ${spec}</span><span class="live-value">${h.services[spec]?cap:'Not provided'}</span></div><div class="live-row"><span>Forecast +6h</span><span class="live-value">${h.services[spec]?fc.beds:'—'}</span></div><div class="live-row"><span>No-bed risk</span><span class="risk ${fc.risk<30?'low':fc.risk<60?'medium':'high'}">${h.services[spec]?fc.risk+'%':'N/A'}</span></div><div class="live-row"><span>Specialist</span><span class="live-value">${doc.label}</span></div><div class="live-row"><span>Transfer time</span><span class="live-value">${travel}${p?' min':''}</span></div><div class="live-row"><span>Feed</span><span class="live-value">${fc.stale?'⚠ 65 min old':'● 4 min old'}</span></div></div><button ${!p?'disabled':''} onclick="window.chooseHospital('${h.id}')">Assign to ${h.short}</button></article>`}).join('')}
+  function renderScores(){for(const key of ['human','ai','oracle']){const w=state.worlds[key];document.getElementById(`${key}Score`).textContent=w.score;document.getElementById(`${key}Detail`).textContent=key==='oracle'&&state.resolvedCases===0?'Hidden until outcomes resolve':`${w.placed} placed · ${w.failed} failed`}}
+  function renderLedger(){const body=document.getElementById('forecastLedger');const rows=state.ledger.slice(-12).reverse();if(!rows.length){body.innerHTML='<tr><td colspan="6">No forecasts recorded yet.</td></tr>';return}body.innerHTML=rows.map(r=>{const h=HOSPITALS.find(x=>x.id===r.hospital);return `<tr><td>${fmt(r.made)}</td><td>${h.short}<br><span class="small">${r.specialty}</span></td><td>${r.predicted}</td><td>${r.actual===null?'Reveals '+fmt(r.target):r.actual}</td><td>${r.error===undefined?'—':(r.error>0?'+':'')+r.error}</td><td>${r.status}</td></tr>`}).join('')}
+  function renderTraining(){document.getElementById('trainingCount').textContent=state.training;document.getElementById('trainingMeter').style.width=`${Math.min(100,state.training/12)}%`;if(state.training>0&&state.training<1200)document.getElementById('learningText').textContent='Recalibrating forecast biases…'}
+  function renderTimeline(){document.getElementById('clock').textContent=fmt(state.minute);document.getElementById('dayLabel').textContent=dayOf(state.minute);document.getElementById('timelineFill').style.width=`${state.minute/14.4}%`;const next=state.cases[state.caseIndex];document.getElementById('nextEventLabel').textContent=state.current?'Clock paused for transfer decision.':next?`Next scheduled request around ${fmt(next.time)}. External hospital data continue to update.`:'No further transfer requests; outcomes and forecasts continue resolving.'}
+  function renderLog(){document.getElementById('eventLog').innerHTML=state.logs.slice(-12).reverse().map(x=>`<div class="event"><div class="event-time">${x.time}</div><div>${x.text}</div></div>`).join('')||'<div class="small">No events yet.</div>'}
+  function log(time,text){state.logs.push({time,text});renderLog()}
+  function renderAll(){renderTimeline();renderHospitals();renderScores();renderLedger();renderTraining();renderLog();if(!state.current&&state.pausedReason!=='decision'){if(state.latestOutcome){const x=state.latestOutcome,p=x.patient;const card=(label,o)=>{const h=HOSPITALS.find(v=>v.id===o.hospital);return `<div class="outcome ${o.ok?'good':'bad'}"><b>${label}: ${h.short}</b><br>${o.ok?'Admitted successfully':'Transfer failed'} · ${o.points} points · ${o.beds} usable bed(s) on arrival · ${o.doc}</div>`};document.getElementById('decisionPanel').innerHTML=`<h3>Latest outcome revealed</h3><b>${p.id} · ${p.condition}</b>${card('Human',x.human)}${card('AI shadow',x.ai)}${card('Best with hindsight',x.oracle)}<p class="small">The hindsight choice had access to the realized future. It is a benchmark, not a deployable prediction.</p>`}else document.getElementById('decisionPanel').innerHTML='<div class="waiting"><div class="waiting-icon">⏱</div><b>Monitoring the regional network</b><p>The clock will pause when the next transfer request arrives.</p></div>'}}
+  window.chooseHospital=dispatch;
+  document.querySelectorAll('[data-speed]').forEach(b=>b.addEventListener('click',()=>{state.speed=+b.dataset.speed;document.querySelectorAll('[data-speed]').forEach(x=>x.classList.toggle('active',x===b))}));
+  document.getElementById('pauseBtn').addEventListener('click',()=>state.running?pause():resume());document.getElementById('nextBtn').addEventListener('click',nextEvent);document.getElementById('trainBtn').addEventListener('click',train);
+  document.querySelectorAll('.mode').forEach(x=>x.addEventListener('click',()=>{document.querySelectorAll('.mode').forEach(m=>m.classList.remove('chosen'));x.classList.add('chosen');state.mode=x.dataset.mode}));
+  document.getElementById('aboutBtn').addEventListener('click',()=>document.getElementById('aboutText').classList.toggle('hidden'));document.getElementById('beginBtn').addEventListener('click',()=>{document.getElementById('startModal').classList.add('hidden');init();resume()});
+  document.getElementById('closeEnd').addEventListener('click',()=>document.getElementById('endModal').classList.add('hidden'));resetWorlds();renderAll();
+})();
+</script>
+</body>
+</html>
