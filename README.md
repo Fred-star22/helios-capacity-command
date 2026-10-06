@@ -20,6 +20,7 @@ Double-click `index.html`, or open it in a current version of Chrome, Edge, Fire
 - A regional transfer coordination centre routes referred emergency patients.
 - The 24-hour day runs from 12:00 to 12:00, with time-dependent demand.
 - Every decision shows current operational data and a six-hour usable-bed forecast.
+- Bed occupancy is time-based: a patient occupies one bed from hospital arrival until the simulated bed-use period ends. If that release occurs before the six-hour horizon, the bed is counted as free at `+6h`.
 - Human and AI decisions run in separate but comparable state tracks.
 - A hindsight benchmark uses the realized future to estimate the best available decision.
 - Forecasts are evaluated six simulated hours after they are made.
