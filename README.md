@@ -24,8 +24,10 @@ Double-click `index.html`, or open it in a current version of Chrome, Edge, Fire
 - Human and AI decisions run in separate but comparable state tracks.
 - A hindsight benchmark uses the realized future to estimate the best available decision.
 - Forecasts are evaluated six simulated hours after they are made.
-- The AI uses transparent scoring and online calibration from forecast errors.
+- The AI begins with hard clinical constraints, is pre-calibrated on 600 synthetic scenarios, and continues recalibrating from forecast errors during play.
 - A stress-test control generates 1,200 synthetic normal, surge, night, stale-data, herding, and specialist-conflict cases.
+
+The active screen is intentionally decision-focused. Detailed forecast evaluation runs in the background and is summarized at the end rather than displayed as a technical ledger during play.
 
 ## Important limitations
 
