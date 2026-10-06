@@ -27,6 +27,8 @@ Double-click `index.html`, or open it in a current version of Chrome, Edge, Fire
 - The AI begins with hard clinical constraints, is pre-calibrated on 600 synthetic scenarios, and continues recalibrating from forecast errors during play.
 - A stress-test control generates 1,200 synthetic normal, surge, night, stale-data, herding, and specialist-conflict cases.
 
+The game is not a single-correct-answer quiz. Multiple hospitals can be clinically suitable. The AI-preferred option is the highest expected trade-off across clinical fit, estimated time to admission, current and six-hour capacity, staff pressure, data freshness, travel time, and preservation of scarce maximum-care resources. Suitable alternatives can still produce strong scores.
+
 The active screen is intentionally decision-focused. Detailed forecast evaluation runs in the background and is summarized at the end rather than displayed as a technical ledger during play.
 
 ## Important limitations
